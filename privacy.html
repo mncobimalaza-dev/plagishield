@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy — PlagiShield</title>
+<style>
+  :root { --bg:#0a0e0f; --surface:#101517; --border:#232b2e; --text:#e8ecec; --muted:#8a9498; --accent:#34e0a1; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-family:'Space Mono',monospace; color:var(--accent); font-size:24px; }
+  h2 { font-size:16px; margin-top:32px; color:var(--text); }
+  p, li { color: #c5cbcc; font-size: 14px; }
+  .updated { color: var(--muted); font-size: 12px; margin-bottom: 32px; }
+  a { color: var(--accent); }
+  .back { display:inline-block; margin-bottom: 24px; color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); color: #c5cbcc; }
+  th { color: var(--muted); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">&larr; Back to PlagiShield</a>
+  <h1>Privacy Policy</h1>
+  <div class="updated">Last updated: [DATE — fill in before publishing]</div>
+
+  <p>This describes what PlagiShield collects, why, and how it's handled. This reflects the app's actual current architecture — please keep this page in sync if the app changes.</p>
+
+  <h2>What we collect and why</h2>
+  <table>
+    <tr><th>Data</th><th>Why</th><th>Where it's stored</th></tr>
+    <tr><td>Name, email</td><td>Account creation and login</td><td>Encrypted at rest by our database provider</td></tr>
+    <tr><td>Password</td><td>Login</td><td>Never stored in plain text — hashed with bcrypt, a one-way, industry-standard algorithm. We cannot see or recover your actual password.</td></tr>
+    <tr><td>Document text you submit</td><td>To generate your plagiarism/AI-detection report</td><td>Sent to Anthropic's Claude API for analysis. <strong>Not stored by us</strong> beyond the single request — we do not keep a copy of your submitted document text.</td></tr>
+    <tr><td>Scan history</td><td>So you can see past reports</td><td>We store only a summary (title, date, overall score) — not the document text or flagged passages.</td></tr>
+    <tr><td>IP address</td><td>Rate limiting / abuse prevention only</td><td>Used transiently for rate-limit counters that auto-expire; not used for tracking or profiling.</td></tr>
+  </table>
+
+  <h2>Third parties we send data to</h2>
+  <p><strong>Anthropic (Claude API):</strong> submitted document text is sent to Anthropic for analysis. See <a href="https://www.anthropic.com/legal/privacy" target="_blank">Anthropic's privacy policy</a> for how they handle API data.</p>
+  <p><strong>Semantic Scholar, arXiv, CrossRef, Wikipedia:</strong> we query these public databases with search terms derived from your document to find potential source matches. These are public, keyless APIs — no account data is sent to them.</p>
+  <p>[If you add Stripe for payments: add a line here about what billing data Stripe processes.]</p>
+  <p>[If you add Resend for email: add a line here — email address and message content pass through Resend to deliver password reset emails.]</p>
+
+  <h2>What we don't do</h2>
+  <ul>
+    <li>We do not sell your data.</li>
+    <li>We do not use your submitted documents to train any AI model.</li>
+    <li>We do not share your document content with other users or third parties beyond the analysis providers listed above.</li>
+  </ul>
+
+  <h2>Data retention</h2>
+  <p>Account data (name, email, hashed password) is kept until you delete your account. Document text submitted for analysis is not retained after your report is generated. Scan history summaries are capped at your most recent 20 scans.</p>
+
+  <h2>Your rights</h2>
+  <p>You can request deletion of your account and associated data at any time by contacting [your contact email]. [Add specifics here once you decide on a self-service deletion flow vs. manual request.]</p>
+
+  <h2>Security</h2>
+  <p>Passwords are hashed with bcrypt. Sessions use signed, HTTP-only cookies that cannot be read or forged by browser scripts. Our API key for the Claude API is stored server-side only and is never exposed to your browser.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this policy as the product evolves. Material changes will be reflected with an updated "Last updated" date above.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy or your data: [your contact email]</p>
+
+  <hr style="border-color:var(--border);margin:40px 0"/>
+  <p style="color:var(--muted);font-size:12px"><strong>Note:</strong> This template describes the system as currently built. It is not legal advice — data protection requirements (which vary by country, e.g. GDPR if you accept EU users, POPIA-style laws elsewhere) should be reviewed by a qualified professional before you rely on this commercially.</p>
+</div>
+</body>
+</html>

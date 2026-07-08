@@ -56,7 +56,7 @@ module.exports = async function handler(req, res) {
       .join('\n');
 
     const prompt = [
-      'You are PlagiShield, an AI-enhanced plagiarism detection engine for the University of Eswatini.',
+      'You are PlagiShield, an AI-enhanced plagiarism and AI-content detection engine.',
       '',
       'A live web search has already been run. Numbered sources found:',
       sourcesSummary || 'No matches found in databases.',
@@ -116,6 +116,8 @@ module.exports = async function handler(req, res) {
       } catch (e) {
         /* ignore parse errors */
       }
+      // Log the real reason server-side so it's visible in Vercel logs
+      // (never sent to the browser - keeps upstream details out of client responses).
       console.error('analyze upstream error:', upstream.status, JSON.stringify(errBody));
       res.status(502).json({ error: msg });
       return;
@@ -133,6 +135,27 @@ module.exports = async function handler(req, res) {
     }
 
     res.status(200).json({ analysis, sources: safeSources });
+
+    // Save a lightweight history record (metadata only - never the document
+    // text or flagged excerpts, to avoid persisting user content beyond
+    // the single request). Best-effort: failures here don't affect the
+    // response already sent above.
+    try {
+      const crypto = require('crypto');
+      const record = {
+        id: crypto.randomBytes(8).toString('hex'),
+        date: new Date().toISOString(),
+        summary_title: analysis.summary_title || 'Untitled scan',
+        overall_score: analysis.overall_score ?? null,
+        ai_probability: analysis.ai_detection?.probability ?? null,
+        matches: safeSources.length,
+      };
+      const historyKey = `history:${user.email}`;
+      await redis.lpush(historyKey, JSON.stringify(record));
+      await redis.ltrim(historyKey, 0, 19); // keep last 20 scans
+    } catch (histErr) {
+      console.error('history save error:', histErr);
+    }
   } catch (err) {
     console.error('analyze error:', err);
     res.status(500).json({ error: 'Something went wrong during analysis. Please try again.' });

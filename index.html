@@ -71,6 +71,31 @@ body {
 /* SIDEBAR SECTION LABEL (shared) */
 .api-label { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
+/* HISTORY MODAL */
+.history-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.history-overlay.hidden { display: none; }
+.history-modal {
+  width: 100%; max-width: 520px; max-height: 80vh; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
+}
+.history-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
+}
+.history-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; }
+.history-close:hover { color: var(--text); }
+.history-modal-body { overflow-y: auto; padding: 8px; }
+.history-item {
+  padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--border);
+  margin: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.history-item-title { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+.history-item-meta { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
+.history-score { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 15px; min-width: 44px; text-align: right; }
+
 /* DB STATUS */
 .db-section { display: flex; flex-direction: column; gap: 6px; }
 .db-item { display: flex; align-items: center; gap: 8px; font-size: 12px; font-family: 'Space Mono', monospace; color: var(--muted); }
@@ -670,7 +695,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
     <div class="auth-brand">
       <div class="brand-top">
         <div class="brand-logo">PlagiShield</div>
-        <div class="brand-tagline">AI-enhanced academic plagiarism detection for the University of Eswatini</div>
+        <div class="brand-tagline">AI-enhanced academic plagiarism &amp; AI-content detection</div>
       </div>
       <div class="brand-features">
         <div class="brand-feat"><div class="feat-dot">&#128270;</div>Live search across 4 open databases</div>
@@ -678,7 +703,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
         <div class="brand-feat"><div class="feat-dot">&#128196;</div>PDF, DOCX, TXT and more</div>
         <div class="brand-feat"><div class="feat-dot">&#128736;</div>AI-generated text detection</div>
       </div>
-      <div class="brand-footer">University of Eswatini &mdash; Dept. of Computer Science</div>
+      <div class="brand-footer">
+        <a href="/terms.html" style="color:var(--muted);font-size:11px" target="_blank">Terms of Service</a> &middot;
+        <a href="/privacy.html" style="color:var(--muted);font-size:11px" target="_blank">Privacy Policy</a>
+      </div>
     </div>
 
     <!-- FORM PANEL -->
@@ -699,7 +727,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
       <div class="auth-form" id="form-signin">
         <div class="auth-field">
           <label class="auth-label" for="si-email">Email address</label>
-          <input class="auth-input" type="email" id="si-email" placeholder="you@uniswa.sz" autocomplete="email"/>
+          <input class="auth-input" type="email" id="si-email" placeholder="you@example.com" autocomplete="email"/>
         </div>
         <div class="auth-field">
           <label class="auth-label" for="si-pass">Password</label>
@@ -707,8 +735,21 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
         </div>
         <div class="auth-err" id="si-err"></div>
         <button class="auth-submit" onclick="doSignIn()">Sign In to PlagiShield</button>
+        <div class="auth-note" style="margin-top:10px"><span onclick="switchTab('forgot')">Forgot password?</span></div>
         <div class="auth-divider">or</div>
         <div class="auth-note">No account? <span onclick="switchTab('register')">Create one free</span></div>
+      </div>
+
+      <!-- FORGOT PASSWORD FORM -->
+      <div class="auth-form hidden" id="form-forgot">
+        <div class="auth-field">
+          <label class="auth-label" for="fp-email">Email address</label>
+          <input class="auth-input" type="email" id="fp-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="auth-err" id="fp-err"></div>
+        <div class="auth-note" id="fp-ok" style="color:var(--accent)"></div>
+        <button class="auth-submit" id="fp-submit" onclick="doForgotPassword()">Send Reset Link</button>
+        <div class="auth-note" style="margin-top:10px"><span onclick="switchTab('signin')">Back to sign in</span></div>
       </div>
 
       <!-- REGISTER FORM -->
@@ -719,7 +760,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
         </div>
         <div class="auth-field">
           <label class="auth-label" for="rg-email">Email address</label>
-          <input class="auth-input" type="email" id="rg-email" placeholder="you@uniswa.sz" autocomplete="email"/>
+          <input class="auth-input" type="email" id="rg-email" placeholder="you@example.com" autocomplete="email"/>
         </div>
         <div class="auth-field">
           <label class="auth-label" for="rg-pass">Password</label>
@@ -730,6 +771,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
           <input class="auth-input" type="password" id="rg-pass2" placeholder="Repeat password" autocomplete="new-password"/>
         </div>
         <div class="auth-err" id="rg-err"></div>
+        <div class="auth-note" style="text-align:left;display:flex;gap:8px;align-items:flex-start;margin-bottom:12px">
+          <input type="checkbox" id="rg-agree" style="margin-top:3px"/>
+          <label for="rg-agree" style="cursor:pointer">I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent)">Terms of Service</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent)">Privacy Policy</a></label>
+        </div>
         <button class="auth-submit" onclick="doRegister()">Create Account</button>
         <div class="auth-divider">or</div>
         <div class="auth-note">Already have an account? <span onclick="switchTab('signin')">Sign in</span></div>
@@ -746,7 +791,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-mark">PlagiShield</div>
-      <div class="logo-sub">University of Eswatini</div>
+      <div class="logo-sub">Academic Integrity Platform</div>
     </div>
 
     <!-- LOGGED IN USER -->
@@ -781,6 +826,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
         <div class="stat-lbl">AI content</div>
         <div class="stat-val" id="s-ai">-</div>
       </div>
+    </div>
+
+    <div class="db-section">
+      <button class="auth-submit" style="background:var(--surface2);color:var(--text);border:1px solid var(--border)" onclick="openHistory()">&#128337; Scan History</button>
     </div>
   </aside>
 
@@ -841,6 +890,19 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 </div><!-- end #app-shell -->
 
+<!-- SCAN HISTORY MODAL -->
+<div id="history-overlay" class="history-overlay hidden" onclick="if(event.target===this) closeHistory()">
+  <div class="history-modal">
+    <div class="history-modal-head">
+      <div style="font-family:'Space Mono',monospace;font-weight:700;font-size:15px">Scan History</div>
+      <button class="history-close" onclick="closeHistory()">&#10005;</button>
+    </div>
+    <div class="history-modal-body" id="history-body">
+      <div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">Loading...</div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ======================================================
    AUTH LOGIC
@@ -867,9 +929,33 @@ function switchTab(tab) {
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
   document.getElementById('form-signin').classList.toggle('hidden', tab !== 'signin');
   document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('form-forgot').classList.toggle('hidden', tab !== 'forgot');
   document.getElementById('si-err').textContent = '';
   document.getElementById('rg-err').textContent = '';
+  document.getElementById('fp-err').textContent = '';
+  document.getElementById('fp-ok').textContent = '';
   document.getElementById('auth-success').classList.remove('show');
+}
+
+async function doForgotPassword() {
+  var email = document.getElementById('fp-email').value.trim().toLowerCase();
+  var errEl = document.getElementById('fp-err');
+  var okEl = document.getElementById('fp-ok');
+  errEl.textContent = '';
+  okEl.textContent = '';
+
+  if (!email || !email.includes('@')) { errEl.textContent = 'Please enter a valid email.'; return; }
+
+  var btn = document.getElementById('fp-submit');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    await apiPost('/api/forgot-password', { email: email });
+    okEl.textContent = 'If that email has an account, a reset link has been sent. Check your inbox.';
+  } catch (err) {
+    errEl.textContent = err.message || 'Something went wrong. Please try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reset Link';
+  }
 }
 
 function showAuthErr(formId, msg) {
@@ -926,6 +1012,7 @@ async function doRegister() {
   if (!email || !email.includes('@')) { showAuthErr('rg-err', 'Please enter a valid email.'); return; }
   if (pass.length < 8)   { showAuthErr('rg-err', 'Password must be at least 8 characters.'); return; }
   if (pass !== pass2)    { showAuthErr('rg-err', 'Passwords do not match.'); return; }
+  if (!document.getElementById('rg-agree').checked) { showAuthErr('rg-err', 'Please agree to the Terms of Service and Privacy Policy.'); return; }
 
   var btn = document.querySelector('#form-register .auth-submit');
   btn.disabled = true; btn.textContent = 'Creating account...';
@@ -948,6 +1035,7 @@ async function doLogout() {
   document.getElementById('auth-success').classList.remove('show');
   document.getElementById('form-signin').classList.remove('hidden');
   document.getElementById('form-register').classList.add('hidden');
+  document.getElementById('form-forgot').classList.add('hidden');
   document.getElementById('tab-signin').classList.add('active');
   document.getElementById('tab-register').classList.remove('active');
   document.getElementById('si-email').value = '';
@@ -1143,7 +1231,7 @@ async function searchCrossRef(phrases) {
   for(const ph of phrases.slice(0,2)) {
     try {
       const q = encodeURIComponent(ph.slice(0,100));
-      const url = `https://api.crossref.org/works?query=${q}&rows=5&mailto=plagishield@uniswa.sz`;
+      const url = `https://api.crossref.org/works?query=${q}&rows=5&mailto=contact@yourdomain.com`;
       const r = await fetch(url);
       if(!r.ok) continue;
       const j = await r.json();
@@ -1576,6 +1664,53 @@ async function runAnalysis() {
   analyzeBtn().disabled = false;
   analyzeBtn().innerHTML = 'Analyze document';
   syncCount();
+}
+
+/* -- SCAN HISTORY ------------------------------ */
+function historyRiskColor(score) {
+  if (score === null || score === undefined) return 'var(--muted)';
+  return score < 25 ? 'var(--green)' : score < 60 ? 'var(--amber)' : 'var(--red)';
+}
+
+async function openHistory() {
+  document.getElementById('history-overlay').classList.remove('hidden');
+  const body = document.getElementById('history-body');
+  body.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">Loading...</div>';
+
+  try {
+    const res = await fetch('/api/history', { credentials: 'same-origin' });
+    if (res.status === 401) {
+      body.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">Please sign in again to view history.</div>';
+      return;
+    }
+    const data = await res.json();
+    const records = data.records || [];
+
+    if (records.length === 0) {
+      body.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">No scans yet. Run your first analysis to see it here.</div>';
+      return;
+    }
+
+    body.innerHTML = records.map(function(r) {
+      const date = new Date(r.date);
+      const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) +
+        ' · ' + date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      const score = r.overall_score;
+      return '<div class="history-item">' +
+        '<div>' +
+          '<div class="history-item-title">' + escapeHtml(r.summary_title || 'Untitled scan') + '</div>' +
+          '<div class="history-item-meta">' + dateStr + ' · ' + (r.matches || 0) + ' matches</div>' +
+        '</div>' +
+        '<div class="history-score" style="color:' + historyRiskColor(score) + '">' + (score !== null && score !== undefined ? score : '-') + '</div>' +
+      '</div>';
+    }).join('');
+  } catch (err) {
+    body.innerHTML = '<div style="color:var(--red);font-size:13px;text-align:center;padding:30px 0">Could not load history. Please try again.</div>';
+  }
+}
+
+function closeHistory() {
+  document.getElementById('history-overlay').classList.add('hidden');
 }
 
 /* -- INIT: runs after all functions are defined -- */
