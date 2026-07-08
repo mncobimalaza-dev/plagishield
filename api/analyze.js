@@ -108,13 +108,15 @@ module.exports = async function handler(req, res) {
 
     if (!upstream.ok) {
       let msg = `Analysis service error (${upstream.status}).`;
+      let errBody = null;
       try {
-        const errBody = await upstream.json();
+        errBody = await upstream.json();
         if (upstream.status === 429) msg = 'The analysis service is busy. Please try again shortly.';
         else if (errBody?.error?.message) msg = 'Analysis service error. Please try again.';
       } catch (e) {
         /* ignore parse errors */
       }
+      console.error('analyze upstream error:', upstream.status, JSON.stringify(errBody));
       res.status(502).json({ error: msg });
       return;
     }
