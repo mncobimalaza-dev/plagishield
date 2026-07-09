@@ -49,6 +49,7 @@ module.exports = async function handler(req, res) {
     const baseUrl = process.env.PUBLIC_BASE_URL || `https://${req.headers.host}`;
     const resetUrl = `${baseUrl}/reset-password.html?token=${token}`;
 
+    let emailDebugInfo = null;
     try {
       await sendEmail({
         to: cleanEmail,
@@ -62,7 +63,12 @@ module.exports = async function handler(req, res) {
       });
     } catch (emailErr) {
       console.error('forgot-password email error:', emailErr);
-      // Don't reveal the failure to the client - still return the generic response.
+      emailDebugInfo = String(emailErr && emailErr.message ? emailErr.message : emailErr);
+    }
+
+    if (process.env.DEBUG_EMAIL === 'true' && emailDebugInfo) {
+      res.status(200).json({ ok: true, message: 'If that email has an account, a reset link has been sent.', debug: emailDebugInfo });
+      return;
     }
 
     genericResponse();

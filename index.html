@@ -949,8 +949,12 @@ async function doForgotPassword() {
   var btn = document.getElementById('fp-submit');
   btn.disabled = true; btn.textContent = 'Sending...';
   try {
-    await apiPost('/api/forgot-password', { email: email });
+    const data = await apiPost('/api/forgot-password', { email: email });
     okEl.textContent = 'If that email has an account, a reset link has been sent. Check your inbox.';
+    if (data.debug) {
+      okEl.textContent += ' [DEBUG: ' + data.debug + ']';
+      okEl.style.color = 'var(--red)';
+    }
   } catch (err) {
     errEl.textContent = err.message || 'Something went wrong. Please try again.';
   } finally {
