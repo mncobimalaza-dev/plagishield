@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
 
     const token = createSessionToken(user);
     setSessionCookie(res, token);
-    res.status(200).json({ name: user.name, email: user.email });
+    res.status(200).json({ name: user.name, email: user.email, verified: Boolean(user.verified) });
   } catch (err) {
     console.error('login error:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });

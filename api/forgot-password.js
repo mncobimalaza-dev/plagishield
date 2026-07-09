@@ -66,6 +66,10 @@ module.exports = async function handler(req, res) {
       emailDebugInfo = String(emailErr && emailErr.message ? emailErr.message : emailErr);
     }
 
+    // TEMPORARY DEBUG AID: set DEBUG_EMAIL=true in Vercel env vars to see
+    // the real send error directly in the response (visible in browser
+    // DevTools -> Network tab, no need to dig through Vercel logs).
+    // Remove this env var (or leave it unset) before going live for real users.
     if (process.env.DEBUG_EMAIL === 'true' && emailDebugInfo) {
       res.status(200).json({ ok: true, message: 'If that email has an account, a reset link has been sent.', debug: emailDebugInfo });
       return;

@@ -1,9 +1,12 @@
 // api/register.js
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { getRedis } = require('../lib/db');
 const { createSessionToken, setSessionCookie, checkRateLimit } = require('../lib/auth');
+const { sendEmail } = require('../lib/email');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const VERIFY_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -47,12 +50,33 @@ module.exports = async function handler(req, res) {
     }
 
     const passHash = await bcrypt.hash(password, 10);
-    const user = { name: cleanName, email: cleanEmail, passHash, createdAt: Date.now() };
+    const user = { name: cleanName, email: cleanEmail, passHash, verified: false, createdAt: Date.now() };
     await redis.set(userKey, JSON.stringify(user));
 
     const token = createSessionToken(user);
     setSessionCookie(res, token);
-    res.status(201).json({ name: user.name, email: user.email });
+    res.status(201).json({ name: user.name, email: user.email, verified: false });
+
+    // Best-effort: send a verification email. Failures here don't block
+    // registration - the response above has already been sent.
+    try {
+      const verifyToken = crypto.randomBytes(32).toString('hex');
+      await redis.set(`verify:${verifyToken}`, cleanEmail, { ex: VERIFY_TTL_SECONDS });
+      const baseUrl = process.env.PUBLIC_BASE_URL || `https://${req.headers.host}`;
+      const verifyUrl = `${baseUrl}/api/verify-email?token=${verifyToken}`;
+      await sendEmail({
+        to: cleanEmail,
+        subject: 'Verify your PlagiShield email',
+        html: `
+          <p>Hi ${cleanName},</p>
+          <p>Welcome to PlagiShield! Please confirm your email address by clicking the link below (expires in 24 hours):</p>
+          <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+          <p>If you didn't create this account, you can ignore this email.</p>
+        `,
+      });
+    } catch (emailErr) {
+      console.error('register verification email error:', emailErr);
+    }
   } catch (err) {
     console.error('register error:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
